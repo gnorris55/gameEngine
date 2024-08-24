@@ -41,7 +41,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 glm::vec3 processInput(GLFWwindow* window);
-void simulate_physics(float time, int& nbFrames, PhysicsManager* physics_handler, float freq, float accumulator);
+void simulate_physics(float time, int& nbFrames, PhysicsManager* physics_handler, float freq, float &accumulator);
 void get_fps(int& frameCount, float currentTime, float& prev_time);
 
 // settings
@@ -106,58 +106,64 @@ int main()
     Shader lighting_pass_shader(RESOURCES_PATH"shaders/deferredRendering/lightingPassShader.vs", RESOURCES_PATH"shaders/deferredRendering/lightingPassShader.fs");
     //Shader depth_lighting_shader(RESOURCES_PATH"shaders/shadowMapRendering/depthShader.vs", RESOURCES_PATH"shaders/shadowMapRendering/depthShader.fs", RESOURCES_PATH"shaders/shadowMapRendering/depthShader.gs");
     Shader shader(RESOURCES_PATH"shaders/defaultShader.vs", RESOURCES_PATH"shaders/defaultShader.fs");
-    Shader skybox_shader(RESOURCES_PATH"shaders/skybox.vs", RESOURCES_PATH"shaders/skybox.fs");
+    Shader skybox_shader(RESOURCES_PATH"shaders/cubeMap/skybox.vs", RESOURCES_PATH"shaders/cubeMap/skybox.fs");
  
     
     Frustum scene_frustum = Frustum(&camera);
 
-    
-    
     Sphere sphere = Sphere(&geometry_pass_shader,  glm::vec4(9, 3, 14, 1), glm::vec3(0.0f, 0.39f, 0.0f), 2);
     
     //Sphere sphere2 = Sphere(&geometry_pass_shader, glm::vec4(9.5, 7, 14, 1), glm::vec3(0.5f, 0.5f, 0.0f), 1);
-    //Cube cube = Cube(&geometry_pass_shader, glm::vec4(8, 10, 14, 1), glm::vec3(0.18f, 0.55f, 0.34f), glm::vec3(2, 2, 2));
-    //Cube cube2 = Cube(&geometry_pass_shader, glm::vec4(8, 7, 14, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(5, 1, 5));
+    Cube cube = Cube(&geometry_pass_shader, glm::vec4(5, 18, 8, 1), glm::vec3(0.18f, 0.55f, 0.34f), glm::vec3(2, 2, 2));
+    Cube cube2 = Cube(&geometry_pass_shader, glm::vec4(5, 15, 8, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(5, 1, 5));
+    Cube cube3 = Cube(&geometry_pass_shader, glm::vec4(5, 7, 8, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 5, 1));
+    Cube cube4 = Cube(&geometry_pass_shader, glm::vec4(5, 7, 8, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
+    Cube cube5 = Cube(&geometry_pass_shader, glm::vec4(5, 5, 18, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
+    Cube cube6 = Cube(&geometry_pass_shader, glm::vec4(10, 5, 20, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
+    Cube cube7 = Cube(&geometry_pass_shader, glm::vec4(15, 5, 18, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
     //Player  player = Player(&geometry_pass_shader, glm::vec4(40, 2, 40, 1), window);
     //Model model2(&geometry_pass_shader, RESOURCES_PATH"models/chair/chair.obj", glm::vec4(5, -1, 5, 1));
     Model model(&model_geometry_pass_shader, RESOURCES_PATH"models/backpack/backpack.obj", glm::vec4(5, 7, 5, 1));
-    
 
     Sun sun = Sun(&shader, glm::vec3(0, 1000, 0), glm::vec3(0.6, 0.6, 0.4), 0.04f, 0.007f);
 
     LightManager light_manager= LightManager(&shader);
-    light_manager.add_light(glm::vec3(5, 7, 12), glm::vec3(0.7, 0.7, 0.5), 0.04f, 0.007f);
+    light_manager.add_light(glm::vec3(5, 7, 12), glm::vec3(2.0, 0.0, 2.0), 0.04f, 0.007f);
+    light_manager.add_sun(&sun);
     //light_manager.add_light(glm::vec3(5, 7, 10), glm::vec3(0.0, 1.0, 0.0), 0.04f, 0.007f);
     //light_manager.add_light(glm::vec3(10, 7, 5), glm::vec3(1.0, 0.0, 0.0), 0.04f, 0.007f);
     //light_manager.lights.push_back(&sun);
 
-    Terrain* terrain = new Terrain(&geometry_pass_shader, &camera, &scene_frustum, glm::vec4(0.0f, -1.0f, 0.0f, 1.0), "Textures/height_map1.jpg", true);
-
+    Terrain* terrain = new Terrain(&geometry_pass_shader, &camera, &scene_frustum, glm::vec4(0.0f, -1.0f, 0.0f, 1.0), "Textures/height_map1.jpg", false);
 
     SceneRenderer scene_renderer = SceneRenderer(&lighting_pass_shader, &light_manager, &camera, SCR_WIDTH, SCR_HEIGHT);
     PhysicsManager physicsManager = PhysicsManager(&shader);
 
-  
-    /*
+    
     physicsManager.add_object(&sphere);
-
-    physicsManager.add_object(&sphere2);
     physicsManager.add_object(&cube);
     physicsManager.add_object(&cube2);
+    physicsManager.add_object(&cube3);
+    //physicsManager.add_object(&cube4);
+    //physicsManager.add_object(&cube5);
+    //physicsManager.add_object(&cube6);
     physicsManager.add_object(terrain);
-    */
+    
+    //physicsManager.add_object(&model);
 
-    scene_renderer.add_sun(&sun);
+
     scene_renderer.add_deferred_entity(&model);
     scene_renderer.add_deferred_entity(terrain);
     scene_renderer.add_deferred_entity(&sphere);
-    /*
     scene_renderer.add_deferred_entity(&cube);
     scene_renderer.add_deferred_entity(&cube2);
-    scene_renderer.add_deferred_entity(&sphere2);
-    */
-   
+    scene_renderer.add_deferred_entity(&cube3);
+    scene_renderer.add_deferred_entity(&cube5);
+    scene_renderer.add_deferred_entity(&cube6);
+    scene_renderer.add_deferred_entity(&cube7);
+   // scene_renderer.add_deferred_entity(&model);
     scene_renderer.toggle_light_debugging(true);
+
     
     std::vector<std::string> faces
     {
@@ -168,14 +174,21 @@ int main()
         RESOURCES_PATH"textures/cubeMaps/skybox/front.jpg",
         RESOURCES_PATH"textures/cubeMaps/skybox/back.jpg"
     };
-
-    Skybox skyBox(&skybox_shader, faces);
+    
     glEnable(GL_DEPTH_TEST);
+
+
+    light_manager.set_depth_maps(scene_renderer.deferred_entities);
+    Skybox skyBox(&skybox_shader, faces);
+    CubeMapDebugger cube_map_debugger(&geometry_pass_shader, glm::vec4(0, 5, 0, 1), light_manager.lights[0]->depthCubeMap);
+    //CubeMapDebugger cube_map_debugger(&geometry_pass_shader, glm::vec4(0, 5, 0, 1), skybox.depthCubeMap);
+
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // render loop
     // -----------
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     int nbFrames = 0;
     lastTime = glfwGetTime();
     float prev_time = glfwGetTime();
@@ -186,9 +199,6 @@ int main()
 
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-        //if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            //rope.spheres[1]->input_acc = glm::vec4(0.0, 0.0, 0.0, 0.0);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -198,31 +208,24 @@ int main()
         get_fps(frameCount, currentTime, prev_time);
         //player.player_movement();
         
+        simulate_physics(currentTime, nbFrames, &physicsManager, 0.01, accumulator);
+
         //physicsManager.simulation_loop(0.01);
         scene_frustum.update_visibility_planes();
           
+        light_manager.set_depth_maps(scene_renderer.deferred_entities);
         //sun.set_depth_map(scene_renderer.deferred_entities);
         scene_renderer.render_scene();
 
-        skyBox.draw(projection, view);
-
+        //cube_map_debugger.draw(projection, view, camera.Position);
+        //skyBox.draw(projection, view);
                 
-        //light_manager.lights[0]->render_to_depth_buffer(&cube);
-        
-        //glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
         //physicsManager.debugging(projection, view, camera.Position);
         // per-frame time logic
         // --------------------
         // input
         // -----;
         sun.position = sun.position + processInput(window);
-
-        // render
-        // ------
-
-        // view/projection transformations
-
 
 
         lastTime = currentTime;
@@ -255,15 +258,16 @@ void get_fps(int& frameCount, float currentTime, float& prev_time) {
 }
 
 
-void simulate_physics(float time, int& nbFrames, PhysicsManager* physicsManager, float freq, float accumulator) {
+void simulate_physics(float time, int& nbFrames, PhysicsManager* physicsManager, float freq, float &accumulator) {
 
     nbFrames++;
     float delta_time = time - lastTime;
-    lastTime = time;
+    //lastTime = time;
     accumulator += delta_time;
     //int count = 0;
     //std::cout << "count: " << count++ << "\n";
     while (accumulator >= freq) {
+        //std::cout << "acc: " << accumulator << "\n";
         physicsManager->simulation_loop(freq);
 
         nbFrames = 0;

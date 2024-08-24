@@ -13,8 +13,6 @@ public:
 	std::vector<Entity *> deferred_entities;
 	std::vector<Entity*> forward_entities;
 	LightManager* light_manager;
-	Sun* sun = nullptr;
-
 
 	unsigned int gBuffer;
 	unsigned int gPosition, gNormal, gAlbedoSpec, gLightNormal, gTangent, gBitangent;
@@ -52,9 +50,6 @@ public:
 		forward_entities.push_back(new_entity);
 	}
 
-	void add_sun(Sun* sun) {
-		this->sun = sun;
-	}
 
 
 private:
@@ -65,8 +60,8 @@ private:
 
 		// create shadow map for all entities
 		// TODO: prebake in shadow map for static objects
-		if (sun != nullptr)
-			sun->set_depth_map(deferred_entities);
+		if (light_manager->sun != nullptr)
+			light_manager->sun->set_depth_map(deferred_entities);
 
         glViewport(0, 0, screen_width, screen_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -87,6 +82,7 @@ private:
 		lighting_pass_shader->setInt("gTangent", 4);
 		lighting_pass_shader->setInt("gBitangent", 5);
 		lighting_pass_shader->setInt("directionalShadowMap", 6);
+		lighting_pass_shader->setInt("omniDirectionalShadowMap", 7);
 	
 
 		glActiveTexture(GL_TEXTURE0);
@@ -101,12 +97,9 @@ private:
 		glBindTexture(GL_TEXTURE_2D, gTangent);
 		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, gBitangent);
-		
-
 
 		define_lights();
 		lighting_pass_shader->setVec3("viewPos", camera->Position);
-
 
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -132,16 +125,22 @@ private:
 				light->draw(camera->GetProjection(), camera->GetViewMatrix(), camera->Position);
 			}
 		}
-		if (sun != nullptr) {
-			sun->draw(camera->GetProjection(), camera->GetViewMatrix(), camera->Position);
+		if (light_manager->sun != nullptr) {
+			light_manager->sun->draw(camera->GetProjection(), camera->GetViewMatrix(), camera->Position);
 		}
 	}
 
 	void define_lights() {
+		unsigned int texture_unit = 7;
+
+		lighting_pass_shader->setInt("shadowMap", texture_unit);
+		glActiveTexture(GL_TEXTURE0 + texture_unit);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, light_manager->lights[0]->depthCubeMap);
 
 		for (int i = 0; i < light_manager->lights.size(); i++) {
 
 			Light* curr_light = light_manager->lights[i];
+			lighting_pass_shader->setFloat("far_plane", curr_light->far_plane);
 
 			lighting_pass_shader->setVec3("lights[" + std::to_string(i) + "].Position", curr_light->position);
 			lighting_pass_shader->setVec3("lights["+ std::to_string(i) +"].Color", curr_light->color);
@@ -155,10 +154,13 @@ private:
 			const float maxBrightness = std::fmaxf(std::fmaxf(1, 1), 1);
 			float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
 			lighting_pass_shader->setFloat("lights[" + std::to_string(i) + "].Radius", radius);
+
+
+						//current_text_unit++;
 		}
-		if (sun != nullptr) {
+		if (light_manager->sun != nullptr) {
 					
-			
+			Sun* sun = light_manager->sun;
 			glActiveTexture(GL_TEXTURE6);
 			glBindTexture(GL_TEXTURE_2D, sun->depth_texture);
 
@@ -234,6 +236,7 @@ private:
 		lighting_pass_shader->setInt("gTangent", 4);
 		lighting_pass_shader->setInt("gBitangent", 5);
 		lighting_pass_shader->setInt("directionalShadowMap", 6);
+		lighting_pass_shader->setInt("omniDirectionalShadowMap", 7);
 
 	}
 	

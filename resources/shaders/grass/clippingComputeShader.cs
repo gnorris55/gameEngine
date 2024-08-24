@@ -32,8 +32,7 @@ void main()
     value.y = length(position - camera_position);
     value.z = position.z;
     value.z = texelCoord.x*2;
-    //imageStore(clippingTex, texelCoord, vec4(position, 1.0)*model);
-    //imageStore(clippingTex, texelCoord, point_c);
+    
     imageStore(clippingTex, texelCoord, value);
 
 }

@@ -217,5 +217,44 @@ private:
 
 };
 
+class CubeMapDebugger : public Cube {
+
+public:
+
+	unsigned int cube_map_texture = 0;
+	Shader* cube_map_shader;
+
+
+	CubeMapDebugger(Shader* shader, glm::vec4 starting_pos, unsigned int texture) : Cube(shader, starting_pos) {
+		cube_map_texture = texture;
+		cube_map_shader = new Shader(RESOURCES_PATH"shaders/cubeMap/cubeMapDebugger.vs", RESOURCES_PATH"shaders/cubeMap/cubeMapDebugger.fs");
+		cube_map_shader->setInt("skybox", 0);
+		
+	}
+
+	~CubeMapDebugger() {
+		glDeleteShader(cube_map_shader->ID);
+	}
+
+
+	void draw(glm::mat4 proj, glm::mat4 view, glm::vec3 camera_position) override {
+
+		//std::cout << "we are drawing a cube map debugger\n";
+		cube_map_shader->use();
+
+		cube_map_shader->setMat4("projection", proj);
+		cube_map_shader->setMat4("view", view);
+		cube_map_shader->setMat4("model", transform_matrix);
+
+		glBindVertexArray(VAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cube_map_texture);
+		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(VAO);
+	}
+
+
+};
+
 
 #endif

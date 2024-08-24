@@ -28,6 +28,6 @@ void main()
     } else {
         gAlbedoSpec.rgb = objectColor;
         gAlbedoSpec.a = 0.1;
-        //gLightNormal = vec3(0, 0, 2);
+        gLightNormal = vec3(0, 0, 0);
     }
 }

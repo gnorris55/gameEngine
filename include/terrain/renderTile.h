@@ -143,11 +143,12 @@ private:
 	void runGrassDisplacementAlg() {
 
 		compute_shader->use();
-		compute_shader->setVec2("position", position.xz());
-		glBindImageTexture(0, grass_texture1, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-		glBindImageTexture(1, grass_texture2, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		
+		//compute_shader->setVec2("position", position.xz());
+		//glBindImageTexture(0, grass_texture1, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		//glBindImageTexture(1, grass_texture2, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 		glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
-
+		
 		// make sure writing to image has finished before read
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 

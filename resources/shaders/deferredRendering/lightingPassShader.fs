@@ -11,6 +11,9 @@ uniform sampler2D gTangent;
 uniform sampler2D gBitangent;
 uniform sampler2D directionalShadowMap;
 
+//todo: tempary
+uniform float far_plane;
+
 struct Light {
     vec3 Position;
     vec3 Color;
@@ -22,6 +25,7 @@ struct Light {
 
 const int NR_LIGHTS = 32;
 uniform Light lights[NR_LIGHTS];
+uniform samplerCube shadowMap;
 
 uniform vec3 viewPos;
 uniform bool hasTexture = true;
@@ -67,6 +71,20 @@ float shadow_calculation(vec3 FragPos, vec3 Normal) {
     return shadow;
 }
 
+float point_shadow_calculation(vec3 FragPos, vec3 lightPos, int index) {
+    
+    vec3 fragToLight = FragPos - lightPos;
+    float closestDepth = texture(shadowMap, fragToLight).r;
+    closestDepth *= far_plane;
+    
+    float currentDepth = length(fragToLight);
+    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+
+    return shadow;
+
+}
+
 vec3 calculate_blinn_phong(vec3 FragPos, vec3 Normal, vec3 Diffuse, float Specular) {
     
 
@@ -103,7 +121,8 @@ vec3 calculate_blinn_phong(vec3 FragPos, vec3 Normal, vec3 Diffuse, float Specul
         float distance = length(lights[i].Position - FragPos);
         if(distance < lights[i].Radius)
         {
-                        
+                       
+            float shadow = point_shadow_calculation(FragPos, lights[i].Position, i);
             // diffuse
             vec3 lightDir = normalize(lights[i].Position - FragPos);
             
@@ -117,8 +136,8 @@ vec3 calculate_blinn_phong(vec3 FragPos, vec3 Normal, vec3 Diffuse, float Specul
             curr_diffuse *= attenuation;
             curr_specular *= attenuation;
 
-            specular += curr_specular;
-            diffuse += curr_diffuse;
+            specular += curr_specular*(1-shadow);
+            diffuse += curr_diffuse*(1-shadow);
         }
     }
 

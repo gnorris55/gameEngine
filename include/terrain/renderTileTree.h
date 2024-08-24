@@ -131,7 +131,9 @@ private:
 
 	void define_render_tiles(float terrain_size, float num_division, glm::vec4 terrain_position, std::vector<float> height_map) {
 		float tile_step = (float)terrain_size / (float)num_division;
-		ComputeShader compute_shader(RESOURCES_PATH"shaders/grass/grassComputeShader.cs");
+		std::cout << "shader 1?\n";
+		ComputeShader compute_shader = ComputeShader(RESOURCES_PATH"shaders/grass/grassComputeShader.cs");
+		std::cout << "shader 2?\n";
 		float heights[64 * 64];
 		float winds[64 * 64 * 3];
 		float grass_color[64 * 64 * 3];

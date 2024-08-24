@@ -9,11 +9,12 @@ class Entity {
 public:
 	
 	Shader* geometry_shader;
-	void set_transform(glm::vec3 translate, glm::vec3 rotation_axis, float angle) {
+	void set_transform(glm::vec3 translate, glm::vec3 rotation_axis, glm::vec3 scale, float angle) {
 
 		glm::mat4 model = glm::mat4(1.0f);
 		//model = glm::transpose(glm::translate(model, translate));
 		model = glm::translate(model, translate);
+		model = glm::scale(model, scale);
 
 		if (angle != 0) 
 			model = glm::rotate(model, angle, rotation_axis);
@@ -73,6 +74,8 @@ public:
 	}
 
 	virtual void draw_depth_buffer(Shader* depth_shader) {
+		//std::cout << glm::to_string(transform_matrix) << "\n";
+		//std::cout << depth_shader->ID << "\n";
 		depth_shader->setMat4("model", transform_matrix);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
@@ -122,7 +125,7 @@ protected:
 		: position(starting_position), color(color), scale(scale), rotation(glm::quat(rotation_axis.x, rotation_axis.y, rotation_axis.z, angle)) {
 		this->shader = shader;
 		//this->geometry_shader = new Shader(RESOURCES_PATH"shaders/geometryShader.vs", RESOURCES_PATH"shaders/geometryShader.fs");
-		set_transform(starting_position, rotation_axis, angle);
+		set_transform(starting_position, rotation_axis, scale, angle);
 	}
 
 	
