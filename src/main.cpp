@@ -122,16 +122,17 @@ int main()
     Cube cube6 = Cube(&geometry_pass_shader, glm::vec4(10, 5, 20, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
     Cube cube7 = Cube(&geometry_pass_shader, glm::vec4(15, 5, 18, 1), glm::vec3(0.56f, 0.93f, 0.56f), glm::vec3(1, 10, 1));
     //Player  player = Player(&geometry_pass_shader, glm::vec4(40, 2, 40, 1), window);
-    //Model model2(&geometry_pass_shader, RESOURCES_PATH"models/chair/chair.obj", glm::vec4(5, -1, 5, 1));
-    Model model(&model_geometry_pass_shader, RESOURCES_PATH"models/backpack/backpack.obj", glm::vec4(5, 7, 5, 1));
+    Model model2(&geometry_pass_shader, RESOURCES_PATH"models/chair/chair.obj", glm::vec4(5, -1, 5, 1));
+    //Model model(&model_geometry_pass_shader, RESOURCES_PATH"models/backpack/backpack.obj", glm::vec4(5, 7, 5, 1));
 
     Sun sun = Sun(&shader, glm::vec3(0, 1000, 0), glm::vec3(0.6, 0.6, 0.4), 0.04f, 0.007f);
 
     LightManager light_manager= LightManager(&shader);
-    light_manager.add_light(glm::vec3(5, 7, 12), glm::vec3(2.0, 0.0, 2.0), 0.04f, 0.007f);
+    light_manager.add_light(glm::vec3(5, 7, 12), glm::vec3(1.0, 1.0, 0.9), 0.04f, 0.007f);
     light_manager.add_sun(&sun);
-    //light_manager.add_light(glm::vec3(5, 7, 10), glm::vec3(0.0, 1.0, 0.0), 0.04f, 0.007f);
-    //light_manager.add_light(glm::vec3(10, 7, 5), glm::vec3(1.0, 0.0, 0.0), 0.04f, 0.007f);
+    //light_manager.add_light(glm::vec3(9, 10, 25), glm::vec3(5.0, 5.0, 2.0), 0.04f, 0.007f);
+    //light_manager.add_light(glm::vec3(0, 7, 15), glm::vec3(5.0, 0.0, 0.0), 0.04f, 0.007f);
+    //light_manager.add_light(glm::vec3(15, 7, 15), glm::vec3(0.0, 0.0, 5.0), 0.04f, 0.007f);
     //light_manager.lights.push_back(&sun);
 
     Terrain* terrain = new Terrain(&geometry_pass_shader, &camera, &scene_frustum, glm::vec4(0.0f, -1.0f, 0.0f, 1.0), "Textures/height_map1.jpg", false);
@@ -151,19 +152,17 @@ int main()
     
     //physicsManager.add_object(&model);
 
-
-    scene_renderer.add_deferred_entity(&model);
-    scene_renderer.add_deferred_entity(terrain);
-    scene_renderer.add_deferred_entity(&sphere);
-    scene_renderer.add_deferred_entity(&cube);
-    scene_renderer.add_deferred_entity(&cube2);
-    scene_renderer.add_deferred_entity(&cube3);
-    scene_renderer.add_deferred_entity(&cube5);
-    scene_renderer.add_deferred_entity(&cube6);
-    scene_renderer.add_deferred_entity(&cube7);
-   // scene_renderer.add_deferred_entity(&model);
+    scene_renderer.add_deferred_entity(&model2, true);
+    scene_renderer.add_deferred_entity(terrain, true);
+    //scene_renderer.add_deferred_entity(&sphere);
+    //scene_renderer.add_deferred_entity(&cube);
+    //scene_renderer.add_deferred_entity(&cube2);
+    //scene_renderer.add_deferred_entity(&cube3);
+    scene_renderer.add_deferred_entity(&cube5, true);
+    scene_renderer.add_deferred_entity(&cube6, true);
+    scene_renderer.add_deferred_entity(&cube7, true);
+    // scene_renderer.add_deferred_entity(&model);
     scene_renderer.toggle_light_debugging(true);
-
     
     std::vector<std::string> faces
     {
@@ -178,9 +177,13 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
 
-    light_manager.set_depth_maps(scene_renderer.deferred_entities);
     Skybox skyBox(&skybox_shader, faces);
     CubeMapDebugger cube_map_debugger(&geometry_pass_shader, glm::vec4(0, 5, 0, 1), light_manager.lights[0]->depthCubeMap);
+    
+
+    // create depth maps for static objects
+    scene_renderer.update_static_shadow_maps();
+    
     //CubeMapDebugger cube_map_debugger(&geometry_pass_shader, glm::vec4(0, 5, 0, 1), skybox.depthCubeMap);
 
     //glEnable(GL_BLEND);
@@ -213,7 +216,7 @@ int main()
         //physicsManager.simulation_loop(0.01);
         scene_frustum.update_visibility_planes();
           
-        light_manager.set_depth_maps(scene_renderer.deferred_entities);
+        //light_manager.set_depth_maps(scene_renderer.deferred_entities);
         //sun.set_depth_map(scene_renderer.deferred_entities);
         scene_renderer.render_scene();
 

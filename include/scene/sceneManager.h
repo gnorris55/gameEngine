@@ -10,6 +10,8 @@ class SceneRenderer {
 
 public:
 	
+	std::vector<Entity *> static_deferred_entities;
+	std::vector<Entity *> dynamic_deferred_entities;
 	std::vector<Entity *> deferred_entities;
 	std::vector<Entity*> forward_entities;
 	LightManager* light_manager;
@@ -42,12 +44,21 @@ public:
 		forward_rendering();
 	}
 
-	void add_deferred_entity(Entity *new_entity) {
+	void add_deferred_entity(Entity *new_entity, bool is_static = false) {
 		deferred_entities.push_back(new_entity);
+		if (is_static)
+			static_deferred_entities.push_back(new_entity);
+		else
+			dynamic_deferred_entities.push_back(new_entity);
 	}
 	
 	void add_forward_entity(Entity *new_entity) {
 		forward_entities.push_back(new_entity);
+	}
+
+	void update_static_shadow_maps() {
+		light_manager->sun->set_depth_map(static_deferred_entities);
+		light_manager->set_depth_maps(static_deferred_entities);
 	}
 
 
@@ -60,8 +71,8 @@ private:
 
 		// create shadow map for all entities
 		// TODO: prebake in shadow map for static objects
-		if (light_manager->sun != nullptr)
-			light_manager->sun->set_depth_map(deferred_entities);
+		//if (light_manager->sun != nullptr)
+			//light_manager->sun->set_depth_map(deferred_entities);
 
         glViewport(0, 0, screen_width, screen_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -154,9 +165,12 @@ private:
 			const float maxBrightness = std::fmaxf(std::fmaxf(1, 1), 1);
 			float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
 			lighting_pass_shader->setFloat("lights[" + std::to_string(i) + "].Radius", radius);
+			
+			lighting_pass_shader->setInt("shadowMap"+std::to_string(i+1), texture_unit);
+			glActiveTexture(GL_TEXTURE0 + texture_unit);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, light_manager->lights[i]->depthCubeMap);
 
-
-						//current_text_unit++;
+			texture_unit++;
 		}
 		if (light_manager->sun != nullptr) {
 					

@@ -25,7 +25,10 @@ struct Light {
 
 const int NR_LIGHTS = 32;
 uniform Light lights[NR_LIGHTS];
-uniform samplerCube shadowMap;
+uniform samplerCube shadowMap1;
+uniform samplerCube shadowMap2;
+uniform samplerCube shadowMap3;
+uniform samplerCube shadowMap4;
 
 uniform vec3 viewPos;
 uniform bool hasTexture = true;
@@ -74,7 +77,15 @@ float shadow_calculation(vec3 FragPos, vec3 Normal) {
 float point_shadow_calculation(vec3 FragPos, vec3 lightPos, int index) {
     
     vec3 fragToLight = FragPos - lightPos;
-    float closestDepth = texture(shadowMap, fragToLight).r;
+    float closestDepth;
+    if (index == 0)
+        closestDepth = texture(shadowMap1, fragToLight).r;
+    else if (index == 1)
+        closestDepth = texture(shadowMap2, fragToLight).r;
+    else if (index == 2)
+        closestDepth = texture(shadowMap3, fragToLight).r;
+    else if (index == 3)
+        closestDepth = texture(shadowMap4, fragToLight).r;
     closestDepth *= far_plane;
     
     float currentDepth = length(fragToLight);
